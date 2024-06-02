@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "microservice.fullname" . }}-service
+  labels:
+    {{- include "microservice.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    {{- if eq .Values.service.type "NodePort"}}
+    {{- range .Values.service.ports }}
+    - port: {{ .port }}
+      targetPort: {{ .targetPort | default .port }}
+      protocol: {{ .protocol | default "TCP" }}
+      name: {{ .name }}
+      NodePort: {{ .nodePort }}
+    {{- end }}
+    {{- end}}
+    {{- if eq .Values.service.type "ClusterIP"}}
+    {{- range .Values.service.ports }}
+    - port: {{ .port }}
+      targetPort: {{ .targetPort | default .port}}
+      protocol: {{ .protocol | default "TCP" }}
+      name: {{ .name }}
+    {{- end}}
+    {{- end}}
+  selector:
+    {{- include "microservice.selectorLabels" . | nindent 4 }}

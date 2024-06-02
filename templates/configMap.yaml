@@ -1,0 +1,9 @@
+{{- if .Values.configMap.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+data:
+  {{ .Values.configMap.name }}: |-
+{{ .Files.Get .Values.configMap.name | indent 4 }}
+{{- end}}

@@ -1,181 +1,485 @@
 {
-    "$schema": "http://json-schema.org/schema#",
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
-        "affinity": {
-            "type": "object"
+      "replicaCount": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 1,
+        "description": "Number of replicas for the deployment"
+      },
+      "image": {
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "default": "thingvance/iam-application",
+            "description": "Docker image repository"
+          },
+          "pullPolicy": {
+            "type": "string",
+            "enum": ["Always", "IfNotPresent", "Never"],
+            "default": "Always",
+            "description": "Image pull policy"
+          },
+          "tag": {
+            "type": "string",
+            "default": "1.1.5",
+            "description": "Docker image tag"
+          }
         },
-        "autoscaling": {
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "maxReplicas": {
-                    "type": "integer"
-                },
-                "minReplicas": {
-                    "type": "integer"
-                },
-                "targetCPUUtilizationPercentage": {
-                    "type": "integer"
-                }
+        "required": ["repository", "pullPolicy", "tag"],
+        "additionalProperties": false
+      },
+      "imagePullSecrets": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the image pull secret"
             }
+          },
+          "required": ["name"]
         },
-        "fullnameOverride": {
-            "type": "string"
-        },
-        "image": {
+        "default": [],
+        "description": "List of image pull secrets"
+      },
+      "nameOverride": {
+        "type": "string",
+        "default": "",
+        "description": "Override the name of the chart"
+      },
+      "fullnameOverride": {
+        "type": "string",
+        "default": "iam",
+        "description": "Override the full name of the chart"
+      },
+      "serviceAccount": {
+        "type": "object",
+        "properties": {
+          "create": {
+            "type": "boolean",
+            "default": true,
+            "description": "Specifies whether a service account should be created"
+          },
+          "automount": {
+            "type": "boolean",
+            "default": true,
+            "description": "Automatically mount a ServiceAccount's API credentials"
+          },
+          "annotations": {
             "type": "object",
-            "properties": {
-                "pullPolicy": {
-                    "type": "string"
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "description": "Annotations to add to the service account"
+          },
+          "name": {
+            "type": "string",
+            "default": "iam",
+            "description": "Name of the service account to use"
+          }
+        },
+        "required": ["create", "automount", "annotations", "name"],
+        "additionalProperties": false
+      },
+      "podAnnotations": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "default": {},
+        "description": "Annotations to add to the pod"
+      },
+      "podLabels": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "default": {},
+        "description": "Labels to add to the pod"
+      },
+      "podSecurityContext": {
+        "type": "object",
+        "additionalProperties": true,
+        "default": {},
+        "description": "Pod-level security context"
+      },
+      "securityContext": {
+        "type": "object",
+        "additionalProperties": true,
+        "default": {},
+        "description": "Container-level security context"
+      },
+      "service": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"],
+            "default": "ClusterIP",
+            "description": "Service type"
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the port"
                 },
-                "repository": {
-                    "type": "string"
+                "port": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535,
+                  "description": "Port number"
                 },
-                "tag": {
-                    "type": "string"
+                "protocol": {
+                  "type": "string",
+                  "enum": ["TCP", "UDP", "SCTP"],
+                  "description": "Port protocol"
                 }
-            }
+              },
+              "required": ["name", "port", "protocol"]
+            },
+            "default": [
+              {
+                "name": "web",
+                "port": 8080,
+                "protocol": "TCP"
+              }
+            ],
+            "description": "List of service ports"
+          }
         },
-        "imagePullSecrets": {
-            "type": "array"
-        },
-        "ingress": {
+        "required": ["type", "ports"],
+        "additionalProperties": false
+      },
+      "ingress": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable or disable Ingress"
+          },
+          "className": {
+            "type": "string",
+            "default": "",
+            "description": "Ingress class name"
+          },
+          "annotations": {
             "type": "object",
-            "properties": {
-                "annotations": {
-                    "type": "object"
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "description": "Annotations for Ingress"
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "host": {
+                  "type": "string",
+                  "description": "Host name for Ingress"
                 },
-                "className": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
+                "paths": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string",
+                        "description": "Path for Ingress"
+                      },
+                      "pathType": {
+                        "type": "string",
+                        "enum": ["Exact", "Prefix", "ImplementationSpecific"],
+                        "description": "Path type for Ingress"
+                      }
+                    },
+                    "required": ["path", "pathType"]
+                  },
+                  "description": "List of paths for the host"
+                }
+              },
+              "required": ["host", "paths"]
+            },
+            "default": [
+              {
+                "host": "chart-example.local",
+                "paths": [
+                  {
+                    "path": "/",
+                    "pathType": "ImplementationSpecific"
+                  }
+                ]
+              }
+            ],
+            "description": "List of Ingress hosts"
+          },
+          "tls": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "secretName": {
+                  "type": "string",
+                  "description": "Name of the TLS secret"
                 },
                 "hosts": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "host": {
-                                "type": "string"
-                            },
-                            "paths": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "path": {
-                                            "type": "string"
-                                        },
-                                        "pathType": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "tls": {
-                    "type": "array"
-                }
-            }
-        },
-        "livenessProbe": {
-            "type": "object",
-            "properties": {
-                "httpGet": {
-                    "type": "object",
-                    "properties": {
-                        "path": {
-                            "type": "string"
-                        },
-                        "port": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "nameOverride": {
-            "type": "string"
-        },
-        "nodeSelector": {
-            "type": "object"
-        },
-        "podAnnotations": {
-            "type": "object"
-        },
-        "podLabels": {
-            "type": "object"
-        },
-        "podSecurityContext": {
-            "type": "object"
-        },
-        "readinessProbe": {
-            "type": "object",
-            "properties": {
-                "httpGet": {
-                    "type": "object",
-                    "properties": {
-                        "path": {
-                            "type": "string"
-                        },
-                        "port": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "replicaCount": {
-            "type": "integer"
-        },
-        "resources": {
-            "type": "object"
-        },
-        "securityContext": {
-            "type": "object"
-        },
-        "service": {
-            "type": "object",
-            "properties": {
-                "port": {
-                    "type": "integer"
-                },
-                "type": {
+                  "type": "array",
+                  "items": {
                     "type": "string"
+                  },
+                  "description": "List of hosts for TLS"
                 }
-            }
+              },
+              "required": ["secretName", "hosts"]
+            },
+            "default": [],
+            "description": "TLS configuration for Ingress"
+          }
         },
-        "serviceAccount": {
+        "required": ["enabled", "className", "annotations", "hosts", "tls"],
+        "additionalProperties": false
+      },
+      "resources": {
+        "type": "object",
+        "additionalProperties": true,
+        "default": {},
+        "description": "Resource limits and requests for the pod"
+      },
+      "livenessProbe": {
+        "type": "object",
+        "properties": {
+          "httpGet": {
             "type": "object",
             "properties": {
-                "annotations": {
-                    "type": "object"
-                },
-                "automount": {
-                    "type": "boolean"
-                },
-                "create": {
-                    "type": "boolean"
-                },
+              "path": {
+                "type": "string",
+                "description": "Path for HTTP probe"
+              },
+              "port": {
+                "type": ["string", "integer"],
+                "description": "Port for HTTP probe"
+              }
+            },
+            "required": ["path", "port"]
+          }
+        },
+        "required": ["httpGet"],
+        "additionalProperties": true,
+        "description": "Liveness probe configuration"
+      },
+      "readinessProbe": {
+        "type": "object",
+        "properties": {
+          "httpGet": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path for HTTP probe"
+              },
+              "port": {
+                "type": ["string", "integer"],
+                "description": "Port for HTTP probe"
+              }
+            },
+            "required": ["path", "port"]
+          }
+        },
+        "required": ["httpGet"],
+        "additionalProperties": true,
+        "description": "Readiness probe configuration"
+      },
+      "autoscaling": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable or disable autoscaling"
+          },
+          "minReplicas": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Minimum number of replicas"
+          },
+          "maxReplicas": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 100,
+            "description": "Maximum number of replicas"
+          },
+          "targetCPUUtilizationPercentage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 80,
+            "description": "Target CPU utilization percentage"
+          }
+        },
+        "required": ["enabled", "minReplicas", "maxReplicas", "targetCPUUtilizationPercentage"],
+        "additionalProperties": false
+      },
+      "volumes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the volume"
+            },
+            "configMap": {
+              "type": "object",
+              "properties": {
                 "name": {
-                    "type": "string"
+                  "type": "string",
+                  "description": "Name of the ConfigMap"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Key in the ConfigMap"
+                      },
+                      "path": {
+                        "type": "string",
+                        "description": "Path to mount the key"
+                      }
+                    },
+                    "required": ["key", "path"]
+                  },
+                  "description": "Items to mount from the ConfigMap"
                 }
+              },
+              "required": ["name", "items"]
             }
+          },
+          "required": ["name", "configMap"]
         },
-        "tolerations": {
-            "type": "array"
+        "default": [
+          {
+            "name": "config",
+            "configMap": {
+              "name": "iam-conf",
+              "items": [
+                {
+                  "key": "application.properties",
+                  "path": "application.properties"
+                }
+              ]
+            }
+          }
+        ],
+        "description": "List of volumes for the pod"
+      },
+      "volumeMounts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the volume to mount"
+            },
+            "mountPath": {
+              "type": "string",
+              "description": "Path to mount the volume"
+            },
+            "readOnly": {
+              "type": "boolean",
+              "description": "Mount the volume as read-only"
+            }
+          },
+          "required": ["name", "mountPath", "readOnly"]
         },
-        "volumeMounts": {
-            "type": "array"
+        "default": [
+          {
+            "name": "config",
+            "mountPath": "/app/config/",
+            "readOnly": true
+          }
+        ],
+        "description": "List of volume mounts for the pod"
+      },
+      "nodeSelector": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
         },
-        "volumes": {
-            "type": "array"
-        }
-    }
-}
+        "default": {},
+        "description": "Node selector for pod scheduling"
+      },
+      "tolerations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "default": [],
+        "description": "Tolerations for pod scheduling"
+      },
+      "affinity": {
+        "type": "object",
+        "additionalProperties": true,
+        "default": {},
+        "description": "Affinity rules for pod scheduling"
+      },
+      "configMap": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable or disable ConfigMap"
+          },
+          "name": {
+            "type": "string",
+            "default": "application.properties",
+            "description": "Name of the ConfigMap resource"
+          }
+        },
+        "required": ["enabled", "name"],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "replicaCount",
+      "image",
+      "imagePullSecrets",
+      "nameOverride",
+      "fullnameOverride",
+      "serviceAccount",
+      "podAnnotations",
+      "podLabels",
+      "podSecurityContext",
+      "securityContext",
+      "service",
+      "ingress",
+      "resources",
+      "livenessProbe",
+      "readinessProbe",
+      "autoscaling",
+      "volumes",
+      "volumeMounts",
+      "nodeSelector",
+      "tolerations",
+      "affinity",
+      "configMap"
+    ],
+    "additionalProperties": false
+  }

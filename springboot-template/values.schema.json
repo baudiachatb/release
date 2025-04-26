@@ -169,7 +169,7 @@
           },
           "content": {
             "type": "string",
-            "default": "",
+            "default": "spring.datasource.url=jdbc:postgresql://localhost:5432/mydb\nspring.datasource.username=admin\nspring.datasource.password=secret\nserver.port=8080",
             "description": "Content of the configuration file (e.g., application.properties or application.yml)"
           }
         },

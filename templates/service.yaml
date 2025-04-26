@@ -13,7 +13,7 @@ spec:
       targetPort: {{ .targetPort | default .port }}
       protocol: {{ .protocol | default "TCP" }}
       name: {{ .name }}
-      NodePort: {{ .nodePort }}
+      nodePort: {{ .nodePort }}
     {{- end }}
     {{- end}}
     {{- if eq .Values.service.type "ClusterIP"}}

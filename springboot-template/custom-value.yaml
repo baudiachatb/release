@@ -109,7 +109,7 @@ volumes:
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
   - name: config
-    mountPath: /app/config
+    mountPath: /config
     readOnly: true
 # - name: foo
 #   mountPath: "/etc/foo"

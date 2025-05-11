@@ -3,12 +3,12 @@ entries:
   microservice:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-04-26T10:50:18.9113522+07:00"
+    created: "2025-05-11T09:25:53.5784921+07:00"
     description: A Helm chart for Kubernetes
-    digest: 0e384b012ec06d4169ae4e783785a1631a7b60c7524d9458936576a5da85120e
+    digest: 3cf31a6ff91d84d01ab983657b7ff4fa318ed2b914ba25167fcf94a0a0ef4bfe
     name: microservice
     type: application
     urls:
     - releases/microservice-0.1.0.tgz
     version: 0.1.0
-generated: "2025-04-26T10:50:18.9072358+07:00"
+generated: "2025-05-11T09:25:53.5764529+07:00"
